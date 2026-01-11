@@ -8,6 +8,8 @@ It includes:
 - Semi-Global Block Matching
 - Belief Propagation (3 different versions)
 
+Note: For different stereo image pairs, set the disparity levels and the other parameters. If the image has no noise, do not use Gaussian filter.
+
 ## Input Image
 The Tsukuba stereo image that used as input.
 

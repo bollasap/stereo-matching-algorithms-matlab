@@ -8,29 +8,30 @@ leftImg = rgb2gray(imread('left.png'));
 rightImg = rgb2gray(imread('right.png'));
 
 % Apply a Gaussian filter
-leftImg = imgaussfilt(leftImg,0.68,'FilterSize',5);
-rightImg = imgaussfilt(rightImg,0.68,'FilterSize',5);
+leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
+rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
 % Get image size
 [rows,cols] = size(leftImg);
 
-% Compute data cost (matching cost)
-dataCost = zeros(rows,cols,dispLevels);
+% Convert from uint8 to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
+
+% Compute data cost (matching cost)
+h = fspecial('average',windowSize);
+dataCost = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
     rightImgShifted = [zeros(rows,d),rightImg(:,1:end-d)];
-    dataCost(:,:,d+1) = abs(leftImg-rightImgShifted);
-end
-h = fspecial('average',windowSize);
-for i = 1:dispLevels
-    dataCost(:,:,i) = conv2(dataCost(:,:,i),h,'same');
+    diff = abs(leftImg-rightImgShifted);
+    dataCost(:,:,d+1) = conv2(diff,h,'same');
 end
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
 diff = abs(d-d');
 smoothnessCost = (diff==1)*p1+(diff>=2)*p2;
+smoothnessCost3d = zeros(1,dispLevels,dispLevels);
 smoothnessCost3d(1,:,:) = smoothnessCost(:,:);
 
 % Initialize tables with costs for the 8 directions

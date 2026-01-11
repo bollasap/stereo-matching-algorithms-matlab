@@ -1,6 +1,7 @@
 dispLevels = 16;
 iterations = 60;
-lambda = 5; %smoothnesCost = min(abs(d1-d2),2)*lambda
+lambda = 5;
+%smoothnesCost = min(abs(d1-d2),2)*lambda
 
 % Read the stereo images as grayscale
 leftImg = rgb2gray(imread('left.png'));
@@ -13,10 +14,12 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 % Get the image size
 [rows,cols] = size(leftImg);
 
-% Compute data cost
-dataCost = zeros(rows,cols,dispLevels);
+% Convert from uint8 to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
+
+% Compute data cost
+dataCost = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
     rightImgShifted = [zeros(rows,d),rightImg(:,1:end-d)];
     dataCost(:,:,d+1) = abs(leftImg-rightImgShifted);
@@ -33,6 +36,7 @@ msgToDown = Inf(rows,cols,dispLevels+2);
 msgToRight = Inf(rows,cols,dispLevels+2);
 msgToLeft = Inf(rows,cols,dispLevels+2);
 
+costs = zeros(rows,cols,3);
 energy = zeros(iterations,1);
 figure
 
@@ -81,7 +85,8 @@ for iter = 1:iterations
     msgFromRight = [msgFromRight(:,2:end,:),zeros(rows,1,dispLevels)]; %shift left
 
     % Compute belief
-    belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft;
+    %belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Standard belief computation
+    belief = msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Without dataCost (larger energy but better results)
     
     % Update disparity map
     [~,ind] = min(belief,[],3);

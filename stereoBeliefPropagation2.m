@@ -14,10 +14,12 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 % Get the image size
 [rows,cols] = size(leftImg);
 
-% Compute data cost
-dataCost = zeros(rows,cols,dispLevels);
+% Convert from uint8 to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
+
+% Compute data cost
+dataCost = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
     rightImgShifted = [zeros(rows,d),rightImg(:,1:end-d)];
     dataCost(:,:,d+1) = abs(leftImg-rightImgShifted);
@@ -26,6 +28,7 @@ end
 % Compute smoothness cost
 d = 0:dispLevels-1;
 smoothnessCost = lambda*min(abs(d-d'),threshold);
+smoothnessCost4d = zeros(1,1,dispLevels,dispLevels);
 smoothnessCost4d(1,1,:,:) = smoothnessCost;
 
 % Initialize messages
@@ -66,7 +69,8 @@ for i = 1:iterations
     msgFromRight = [msgToLeft(:,2:end,:),zeros(rows,1,dispLevels)]; %shift left
 
     % Compute belief
-    belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft;
+    %belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Standard belief computation
+    belief = msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Without dataCost (larger energy but better results)
     
     % Update disparity map
     [~,ind] = min(belief,[],3);

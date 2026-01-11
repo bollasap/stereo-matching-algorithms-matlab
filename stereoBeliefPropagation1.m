@@ -1,6 +1,6 @@
 dispLevels = 16;
-iterations = 30;
-lambda = 8;
+iterations = 60;
+lambda = 5;
 threshold = 2;
 
 % Read the stereo images as grayscale
@@ -8,16 +8,18 @@ leftImg = rgb2gray(imread('left.png'));
 rightImg = rgb2gray(imread('right.png'));
 
 % Apply a Gaussian filter
-leftImg = imgaussfilt(leftImg,1,'FilterSize',5);
-rightImg = imgaussfilt(rightImg,1,'FilterSize',5);
+leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
+rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
 % Get the image size
 [rows,cols] = size(leftImg);
 
-% Compute data cost
-dataCost = zeros(rows,cols,dispLevels);
+% Convert from uint8 to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
+
+% Compute data cost
+dataCost = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
     rightImgShifted = [zeros(rows,d),rightImg(:,1:end-d)];
     dataCost(:,:,d+1) = abs(leftImg-rightImgShifted);
@@ -26,8 +28,10 @@ end
 % Compute smoothness cost
 d = 0:dispLevels-1;
 smoothnessCost = lambda*min(abs(d-d'),threshold);
-smoothnessCost3d_1(1,:,:) = smoothnessCost(:,:);
-smoothnessCost3d_2(:,1,:) = smoothnessCost(:,:);
+smoothnessCost3d_1 = zeros(1,dispLevels,dispLevels);
+smoothnessCost3d_2 = zeros(dispLevels,1,dispLevels);
+smoothnessCost3d_1(1,:,:) = smoothnessCost;
+smoothnessCost3d_2(:,1,:) = smoothnessCost;
 
 % Initialize messages
 msgUp = zeros(rows,cols,dispLevels);
@@ -40,7 +44,7 @@ energy = zeros(iterations,1);
 
 % Start iterations
 for i = 1:iterations
-    
+
     % Horizontal forward pass - Send messages right
     for x = 1:cols-1
         msg = dataCost(:,x,:)+msgUp(:,x,:)+msgDown(:,x,:)+msgLeft(:,x,:);
@@ -70,7 +74,8 @@ for i = 1:iterations
     end
     
     % Compute belief
-    belief = dataCost + msgUp + msgDown + msgRight + msgLeft;
+    %belief = dataCost + msgUp + msgDown + msgRight + msgLeft; % Standard belief computation
+    belief = msgUp + msgDown + msgRight + msgLeft; % Without dataCost (larger energy but better results)
     
     % Update disparity map
     [~,ind] = min(belief,[],3);

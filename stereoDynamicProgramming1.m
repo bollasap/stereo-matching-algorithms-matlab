@@ -1,28 +1,32 @@
 dispLevels = 16;
-Pocc = 10; % Occlusion penalty
-Pdisc = 3; % Vertical discontinuity penalty
+Pocc = 5; % Occlusion penalty
+Pdisc = 1; % Vertical discontinuity penalty
 
 % Read stereo image
-left = rgb2gray(imread('Left.png'));
-right = rgb2gray(imread('Right.png'));
+leftImg = rgb2gray(imread('left.png'));
+rightImg = rgb2gray(imread('right.png'));
 
 % Use gaussian filter
-left = imgaussfilt(left,0.6,'FilterSize',5);
-right = imgaussfilt(right,0.6,'FilterSize',5);
+leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
+rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
 % Get image size
-[rows,cols] = size(left);
+[rows,cols] = size(leftImg);
+
+% Convert from uint8 to double
+leftImg = double(leftImg);
+rightImg = double(rightImg);
 
 D = Inf(cols+1,cols+1); % Minimum costs
 T = zeros(cols+1,cols+1); % Transitions
-dispMap = zeros(rows,cols);
+disparityMap = zeros(rows,cols);
 
 % For each scanline
 for y = 1:rows
 
     % Compute matching cost
-    L = double(left(y,:)); % Left scanline
-    R = double(right(y,:)); % Right scanline
+    L = leftImg(y,:); % Left scanline
+    R = rightImg(y,:); % Right scanline
     C = abs(L-R'); % Matching cost
     
     T0 = T;
@@ -68,11 +72,11 @@ for y = 1:rows
     j = cols+1;
     while i > 1
         if T(j,i) == 1
-            dispMap(y,i-1) = i-j;
+            disparityMap(y,i-1) = i-j;
             i = i-1;
             j = j-1;
         elseif T(j,i) == 2
-            %dispMap(y,i-1) = i-j; % disparity map without occlusion
+            disparityMap(y,i-1) = i-j; % disparity map without occlusion
             i = i-1;
         elseif T(j,i) == 3
             j = j-1;
@@ -82,10 +86,10 @@ end
 
 % Convert disparity map to image
 scaleFactor = 256/dispLevels;
-dispImage = uint8(dispMap*scaleFactor);
+disparityImg = uint8(disparityMap*scaleFactor);
 
 % Show disparity image
-imshow(dispImage)
+imshow(disparityImg)
 
 % Save disparity image
-imwrite(dispImage,'Disparity.png')
+imwrite(disparityImg,'disparity.png')
