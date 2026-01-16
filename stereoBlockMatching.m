@@ -1,7 +1,9 @@
-dispLevels = 16;
+% Block Matching
+% ------------------------------------------------------------
+dispLevels = 16; %disparity range: 0 to dispLevels-1
 windowSize = 5;
 
-% Read the stereo images as grayscale
+% Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
 rightImg = rgb2gray(imread('right.png'));
 
@@ -9,33 +11,33 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Get image size
-[rows,cols] = size(leftImg);
-
-% Convert from uint8 to double
+% Convert to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
 
-% Compute initial matching cost
+% Get the size
+[rows,cols] = size(leftImg);
+
+% Compute pixel-based matching cost
 rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
 	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-C0 = abs(leftImg-rightImgShifted);
+dataCost = abs(leftImg-rightImgShifted);
 
-% Compute aggregated matching cost
-C1 = imboxfilt3(C0,[windowSize windowSize 1]);
+% Aggregate the matching cost
+dataCost = imboxfilt3(dataCost,[windowSize windowSize 1]);
 
-% Create disparity map
-[~,ind] = min(C1,[],3);
+% Compute the disparity map
+[~,ind] = min(dataCost,[],3);
 dispMap = ind-1;
 
-% Create disparity image
+% Normalize the disparity map for display
 scaleFactor = 256/dispLevels;
-dispImage = uint8(dispMap*scaleFactor);
+dispImg = uint8(dispMap*scaleFactor);
 
-% Show disparity image
-figure; imshow(dispImage)
+% Show disparity map
+figure; imshow(dispImg)
 
-% Save disparity image
-imwrite(dispImage,'disparity.png')
+% Save disparity map
+imwrite(dispImg,'disparity.png')

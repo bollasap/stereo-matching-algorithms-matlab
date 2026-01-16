@@ -1,8 +1,10 @@
-dispLevels = 16;
-p1 = 5;
-p2 = 10;
+% Semi-Global Matching
+% ------------------------------------------------------------
+dispLevels = 16; %disparity range: 0 to dispLevels-1
+p1 = 5; %occlusion penalty 1
+p2 = 10; %occlusion penalty 2
 
-% Read the stereo images as grayscale
+% Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
 rightImg = rgb2gray(imread('right.png'));
 
@@ -10,19 +12,19 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Get image size
-[rows,cols] = size(leftImg);
-
-% Convert from uint8 to double
+% Convert to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
 
-% Compute data cost (matching cost)
-dataCost = zeros(rows,cols,dispLevels);
+% Get the size
+[rows,cols] = size(leftImg);
+
+% Compute pixel-based matching cost
+rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
-    rightImgShifted = [zeros(rows,d),rightImg(:,1:end-d)];
-    dataCost(:,:,d+1) = abs(leftImg-rightImgShifted);
+	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
+dataCost = abs(leftImg-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
@@ -124,20 +126,19 @@ for i = 1:cols
     L8(:,i,:) = L8a(i:rows+i-1,i,:);
 end
 
-% Compute total cost (aggregated cost)
+% Compute total cost
 S = L1 + L2 + L3 + L4 + L5 + L6 + L7 + L8;
 
-% Update disparity map
+% Compute the disparity map
 [~,ind] = min(S,[],3);
-disparityMap = ind-1;
+dispMap = ind-1;
 
-% Update disparity image
+% Normalize the disparity map for display
 scaleFactor = 256/dispLevels;
-disparityImg = uint8(disparityMap*scaleFactor);
+dispImg = uint8(dispMap*scaleFactor);
 
-% Show disparity image
-figure
-imshow(disparityImg)
+% Show disparity map
+figure; imshow(dispImg)
 
-% Save disparity image
-imwrite(disparityImg,'disparity.png')
+% Save disparity map
+imwrite(dispImg,'disparity.png')

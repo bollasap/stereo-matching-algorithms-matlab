@@ -1,42 +1,44 @@
-dispLevels = 16;
-Pocc = 5; % Occlusion penalty
+% Stereo Matching using Dynamic Programming (Left-Disparity Axes)
+% ------------------------------------------------------------
+dispLevels = 16; %disparity range: 0 to dispLevels-1
+Pocc = 5; %occlusion penalty
 
-% Read stereo image
+% Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
 rightImg = rgb2gray(imread('right.png'));
 
-% Use gaussian filter
+% Apply a Gaussian filter
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Get image size
-[rows,cols] = size(leftImg);
-
-% Convert from uint8 to double
+% Convert to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
 
-% Compute matching cost
-C = zeros(rows,cols,dispLevels);
-for x = 0:dispLevels-1
-    rightShifted = [zeros(rows,x),rightImg(:,1:end-x)];
-    C(:,:,x+1) = abs(leftImg-rightShifted);
+% Get the size
+[rows,cols] = size(leftImg);
+
+% Compute pixel-based matching cost
+rightImgShifted = zeros(rows,cols,dispLevels);
+for d = 0:dispLevels-1
+	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
+dataCost = abs(leftImg-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
 smoothnessCost = Pocc*abs(d-d');
-%smoothnessCost = Pocc*min(abs(d-d'),2); % alternative
+%smoothnessCost = Pocc*min(abs(d-d'),2); %alternative
 smoothnessCost3d = zeros(1,dispLevels,dispLevels);
 smoothnessCost3d(1,:,:) = smoothnessCost;
 
-D = zeros(rows,cols,dispLevels); % Minimum costs
-T = zeros(rows,cols,dispLevels); % Transitions
-disparityMap = zeros(rows,cols);
+D = zeros(rows,cols,dispLevels); %minimum costs
+T = zeros(rows,cols,dispLevels); %transitions
+dispMap = zeros(rows,cols);
 
 % Forward step
 for x = 2:cols
-    cost = C(:,x-1,:)+D(:,x-1,:);
+    cost = dataCost(:,x-1,:)+D(:,x-1,:);
     [cost,ind] = min(cost+smoothnessCost3d,[],3);
     D(:,x,:) = cost;
     T(:,x,:) = ind;
@@ -45,18 +47,17 @@ end
 % Backtracking
 d = ones(rows,1);
 for x = cols:-1:1
-    disparityMap(:,x) = d-1;
+    dispMap(:,x) = d-1;
     linInd = sub2ind(size(T),(1:rows)',x*ones(rows,1),d);
     d = T(linInd);
 end
 
-% Convert disparity map to image
+% Normalize the disparity map for display
 scaleFactor = 256/dispLevels;
-disparityImg = uint8(disparityMap*scaleFactor);
+dispImg = uint8(dispMap*scaleFactor);
 
-% Show disparity image
-imshow(disparityImg)
+% Show disparity map
+figure; imshow(dispImg)
 
-% Save disparity image
-imwrite(disparityImg,'disparity.png')
-
+% Save disparity map
+imwrite(dispImg,'disparity.png')

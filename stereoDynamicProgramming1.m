@@ -1,33 +1,35 @@
-dispLevels = 16;
-Pocc = 5; % Occlusion penalty
-Pdisc = 1; % Vertical discontinuity penalty
+% Stereo Matching using Dynamic Programming (Left-Right Axes)
+% ------------------------------------------------------------
+dispLevels = 16;% disparity range: 0 to dispLevels-1
+Pocc = 5; %occlusion penalty
+Pdisc = 1; %vertical discontinuity penalty
 
-% Read stereo image
+% Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
 rightImg = rgb2gray(imread('right.png'));
 
-% Use gaussian filter
+% Apply a Gaussian filter
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Get image size
-[rows,cols] = size(leftImg);
-
-% Convert from uint8 to double
+% Convert to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
 
-D = Inf(cols+1,cols+1); % Minimum costs
-T = zeros(cols+1,cols+1); % Transitions
-disparityMap = zeros(rows,cols);
+% Get the size
+[rows,cols] = size(leftImg);
+
+D = Inf(cols+1,cols+1); %minimum costs
+T = zeros(cols+1,cols+1); %transitions
+dispMap = zeros(rows,cols);
 
 % For each scanline
 for y = 1:rows
 
     % Compute matching cost
-    L = leftImg(y,:); % Left scanline
-    R = rightImg(y,:); % Right scanline
-    C = abs(L-R'); % Matching cost
+    L = leftImg(y,:); %left scanline
+    R = rightImg(y,:); %right scanline
+    C = abs(L-R'); %matching cost
     
     T0 = T;
 
@@ -56,13 +58,13 @@ for y = 1:rows
             % Find minimum cost
             if c1 <= c2 && c1 <= c3
                 D(j,i) = c1;
-                T(j,i) = 1; % Match
+                T(j,i) = 1; %match
             elseif c2 <= c3
                 D(j,i) = c2;
-                T(j,i) = 2; % Left occlusion
+                T(j,i) = 2; %left occlusion
             else
                 D(j,i) = c3;
-                T(j,i) = 3; % Right occlusion
+                T(j,i) = 3; %right occlusion
             end
         end
     end
@@ -72,11 +74,11 @@ for y = 1:rows
     j = cols+1;
     while i > 1
         if T(j,i) == 1
-            disparityMap(y,i-1) = i-j;
+            dispMap(y,i-1) = i-j;
             i = i-1;
             j = j-1;
         elseif T(j,i) == 2
-            disparityMap(y,i-1) = i-j; % disparity map without occlusion
+            dispMap(y,i-1) = i-j; %comment this line for occlusion handling
             i = i-1;
         elseif T(j,i) == 3
             j = j-1;
@@ -84,12 +86,12 @@ for y = 1:rows
     end
 end
 
-% Convert disparity map to image
+% Normalize the disparity map for display
 scaleFactor = 256/dispLevels;
-disparityImg = uint8(disparityMap*scaleFactor);
+dispImg = uint8(dispMap*scaleFactor);
 
-% Show disparity image
-imshow(disparityImg)
+% Show disparity map
+figure; imshow(dispImg)
 
-% Save disparity image
-imwrite(disparityImg,'disparity.png')
+% Save disparity map
+imwrite(dispImg,'disparity.png')
