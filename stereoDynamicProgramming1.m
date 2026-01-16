@@ -30,15 +30,16 @@ for y = 1:rows
     L = leftImg(y,:); %left scanline
     R = rightImg(y,:); %right scanline
     C = abs(L-R'); %matching cost
-    
+
+    % Keep previous transitions
     T0 = T;
 
-    % Forward step
+    % Compute DP table (forward pass)
     D(1,1:dispLevels) = (0:dispLevels-1) * Pocc;
     T(1,2:dispLevels) = 2;
     for j = 2:cols+1
         for i = j:min(j+dispLevels-1,cols+1)
-            % Compute costs
+            % Compute cost for match and costs for occlusions
             c1 = D(j-1,i-1) + C(j-1,i-1);
             c2 = D(j,i-1) + Pocc;
             c3 = D(j-1,i) + Pocc;
@@ -69,7 +70,7 @@ for y = 1:rows
         end
     end
 
-    % Backtracking
+    % Compute disparity map (backtracking)
     i = cols+1;
     j = cols+1;
     while i > 1

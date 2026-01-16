@@ -35,9 +35,9 @@ d = 0:dispLevels-1;
 diff = abs(d-d');
 smoothnessCost = (diff==1)*p1+(diff>=2)*p2;
 smoothnessCost3d = zeros(1,dispLevels,dispLevels);
-smoothnessCost3d(1,:,:) = smoothnessCost(:,:);
+smoothnessCost3d(1,:,:) = smoothnessCost;
 
-% Initialize tables with costs for the 8 directions
+% Initialize path tables for the 8 directions
 L1 = zeros(rows,cols,dispLevels);
 L2 = zeros(rows,cols,dispLevels);
 L3 = zeros(cols,rows,dispLevels);
@@ -47,24 +47,24 @@ L6 = zeros(rows,cols,dispLevels);
 L7 = zeros(rows,cols,dispLevels);
 L8 = zeros(rows,cols,dispLevels);
 
-% left to right direction
+% Compute paths for left to right direction
 for x = 2:cols
     cost = dataCost(:,x-1,:)+L1(:,x-1,:);
     cost = min(cost+smoothnessCost3d,[],3);
     L1(:,x,:) = cost-min(cost,[],2);
 end
 
-% right to left direction
+% Compute paths for right to left direction
 for x = cols-1:-1:1
     cost = dataCost(:,x+1,:)+L2(:,x+1,:);
     cost = min(cost+smoothnessCost3d,[],3);
     L2(:,x,:) = cost-min(cost,[],2);
 end
 
-% Rotate dataCost
+% Rotate dataCost for vertical directions
 dataCostRotated = permute(dataCost,[2 1 3]);
 
-% up to down direction
+% Compute paths for up to down direction
 for x = 2:rows
     cost = dataCostRotated(:,x-1,:)+L3(:,x-1,:);
     cost = min(cost+smoothnessCost3d,[],3);
@@ -72,7 +72,7 @@ for x = 2:rows
 end
 L3 = permute(L3,[2 1 3]);
 
-% down to up direction
+% Compute paths for down to up direction
 for x = rows-1:-1:1
     cost = dataCostRotated(:,x+1,:)+L4(:,x+1,:);
     cost = min(cost+smoothnessCost3d,[],3);
@@ -80,7 +80,7 @@ for x = rows-1:-1:1
 end
 L4 = permute(L4,[2 1 3]);
 
-% Edit dataCost
+% Edit dataCost for diagonal directions
 dataCostEdited1 = zeros(rows+cols-1,cols,dispLevels);
 dataCostEdited2 = zeros(rows+cols-1,cols,dispLevels);
 for i = 1:cols
@@ -94,35 +94,35 @@ L6a = zeros(rows+cols-1,cols,dispLevels);
 L7a = zeros(rows+cols-1,cols,dispLevels);
 L8a = zeros(rows+cols-1,cols,dispLevels);
 
-% left/up to right/down direction
+% Compute paths for left/up to right/down direction
 for x = 2:cols
     cost = dataCostEdited1(:,x-1,:)+L5a(:,x-1,:);
     cost = min(cost+smoothnessCost3d,[],3);
     L5a(:,x,:) = cost-min(cost,[],2);
 end
 
-% right/down to left/up direction
+% Compute paths for right/down to left/up direction
 for x = cols-1:-1:1
     cost = dataCostEdited1(:,x+1,:)+L6a(:,x+1,:);
     cost = min(cost+smoothnessCost3d,[],3);
     L6a(:,x,:) = cost-min(cost,[],2);
 end
 
-% left/down to right/up direction
+% Compute paths for left/down to right/up direction
 for x = 2:cols
     cost = dataCostEdited2(:,x-1,:)+L7a(:,x-1,:);
     cost = min(cost+smoothnessCost3d,[],3);
     L7a(:,x,:) = cost-min(cost,[],2);
 end
 
-% right/up to left/down direction
+% Compute paths for right/up to left/down direction
 for x = cols-1:-1:1
     cost = dataCostEdited2(:,x+1,:)+L8a(:,x+1,:);
     cost = min(cost+smoothnessCost3d,[],3);
     L8a(:,x,:) = cost-min(cost,[],2);
 end
 
-% Fill tables for the diagonal directions
+% Fill path tables using temporary tables
 for i = 1:cols
     L5(:,i,:) = L5a(cols-i+1:rows+cols-i,i,:);
     L6(:,i,:) = L6a(cols-i+1:rows+cols-i,i,:);

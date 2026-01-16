@@ -28,7 +28,7 @@ dataCost = abs(leftImg-rightImgShifted);
 % Compute smoothness cost
 d = 0:dispLevels-1;
 smoothnessCost = Pocc*abs(d-d');
-%smoothnessCost = Pocc*min(abs(d-d'),2); %alternative
+%smoothnessCost = Pocc*min(abs(d-d'),2); %alternative smoothness cost
 smoothnessCost3d = zeros(1,dispLevels,dispLevels);
 smoothnessCost3d(1,:,:) = smoothnessCost;
 
@@ -36,7 +36,7 @@ D = zeros(rows,cols,dispLevels); %minimum costs
 T = zeros(rows,cols,dispLevels); %transitions
 dispMap = zeros(rows,cols);
 
-% Forward step
+% Compute DP table (forward pass)
 for x = 2:cols
     cost = dataCost(:,x-1,:)+D(:,x-1,:);
     [cost,ind] = min(cost+smoothnessCost3d,[],3);
@@ -44,7 +44,7 @@ for x = 2:cols
     T(:,x,:) = ind;
 end
 
-% Backtracking
+% Compute disparity map (backtracking)
 d = ones(rows,1);
 for x = cols:-1:1
     dispMap(:,x) = d-1;

@@ -3,7 +3,7 @@
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 iterations = 60;
 lambda = 5; %weight of smoothness cost
-%The smoothness cost defined as: min(abs(d1-d2),2)*lambda
+%smoothness cost computation: min(abs(d1-d2),2)*lambda
 
 % Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
@@ -45,43 +45,46 @@ figure
 % Start iterations
 for it = 1:iterations
 
-    % Update messages
+    % Compute messages (step 1)
     msgToUp(:,:,2:end-1) = dataCost + msgFromDown + msgFromRight + msgFromLeft;
     msgToDown(:,:,2:end-1) = dataCost + msgFromUp + msgFromRight + msgFromLeft;
     msgToRight(:,:,2:end-1) = dataCost + msgFromUp + msgFromDown + msgFromLeft;
     msgToLeft(:,:,2:end-1) = dataCost + msgFromUp + msgFromDown + msgFromRight;
-    
+
+    % Find minimum costs
     minMsgToUp = min(msgToUp,[],3);
     minMsgToDown = min(msgToDown,[],3);
     minMsgToRight = min(msgToRight,[],3);
     minMsgToLeft = min(msgToLeft,[],3);
-    
+
+    % Compute messages (step 2)
     for i = 1:dispLevels
-        % Create messages to up
+        % Messages to up
         costs(:,:,1) = msgToUp(:,:,i+1);
         costs(:,:,2) = min(msgToUp(:,:,i),msgToUp(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToUp+2*lambda;
         msgFromDown(:,:,i) = min(costs,[],3)-minMsgToUp;
         
-        % Create messages to down
+        % Messages to down
         costs(:,:,1) = msgToDown(:,:,i+1);
         costs(:,:,2) = min(msgToDown(:,:,i),msgToDown(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToDown+2*lambda;
         msgFromUp(:,:,i) = min(costs,[],3)-minMsgToDown;
         
-        % Create messages to right
+        % Messages to right
         costs(:,:,1) = msgToRight(:,:,i+1);
         costs(:,:,2) = min(msgToRight(:,:,i),msgToRight(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToRight+2*lambda;
         msgFromLeft(:,:,i) = min(costs,[],3)-minMsgToRight;
         
-        % Create messages to left
+        % Messages to left
         costs(:,:,1) = msgToLeft(:,:,i+1);
         costs(:,:,2) = min(msgToLeft(:,:,i),msgToLeft(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToLeft+2*lambda;
         msgFromRight(:,:,i) = min(costs,[],3)-minMsgToLeft;
     end
 
+    % Fix messages
     msgFromDown = [msgFromDown(2:end,:,:);zeros(1,cols,dispLevels)]; %shift up
     msgFromUp = [zeros(1,cols,dispLevels);msgFromUp(1:end-1,:,:)]; %shift down
     msgFromLeft = [zeros(rows,1,dispLevels),msgFromLeft(:,1:end-1,:)]; %shift right
