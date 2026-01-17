@@ -1,4 +1,4 @@
-# Stereo Matching Algorithms
+# Stereo Matching Algorithms in MATLAB
 Optimized (very fast) stereo matching algorithms in MATLAB.
 
 It includes:
@@ -21,43 +21,43 @@ The Tsukuba stereo image that used as input.
 The disparity map that created using the Block Matching algorithm.
 
 <p align="center">
-  <img src="disparity0.png"> 
+  <img src="results/disparity0.png"> 
 </p>
 
 The disparity map that created using the Dynamic Programming (Left-Right Axes) algorithm.
 
 <p align="center">
-  <img src="disparity1.png"> 
+  <img src="results/disparity1.png"> 
 </p>
 
 The disparity map that created using the Dynamic Programming (Left-Disparity Axes) algorithm.
 
 <p align="center">
-  <img src="disparity2.png"> 
+  <img src="results/disparity2.png"> 
 </p>
 
 The disparity map that created using the Semi-Global Matching algorithm.
 
 <p align="center">
-  <img src="disparity3.png"> 
+  <img src="results/disparity3.png"> 
 </p>
 
 The disparity map that created using the Semi-Global Block Matching algorithm.
 
 <p align="center">
-  <img src="disparity4.png"> 
+  <img src="results/disparity4.png"> 
 </p>
 
 The disparity map that created using the Belief Propagation (Accelerated) algorithm.
 
 <p align="center">
-  <img src="disparity5.png"> 
+  <img src="results/disparity5.png"> 
 </p>
 
 The disparity map that created using the Belief Propagation (Synchronous) algorithm.
 
 <p align="center">
-  <img src="disparity6.png"> 
+  <img src="results/disparity6.png"> 
 </p>
 
 ## Related Repositories
