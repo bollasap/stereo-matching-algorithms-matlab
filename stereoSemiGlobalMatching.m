@@ -22,7 +22,7 @@ rightImg = double(rightImg);
 % Compute pixel-based matching cost
 rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
-	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
+    rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
 dataCost = abs(leftImg-rightImgShifted);
 
@@ -80,8 +80,8 @@ L4 = permute(L4,[2 1 3]);
 dataCostEdited1 = zeros(rows+cols-1,cols,dispLevels);
 dataCostEdited2 = zeros(rows+cols-1,cols,dispLevels);
 for i = 1:cols
-    dataCostEdited1(:,i,:) = [zeros(cols-i,1,dispLevels);dataCost(:,i,:);zeros(i-1,1,dispLevels)];
-    dataCostEdited2(:,i,:) = [zeros(i-1,1,dispLevels);dataCost(:,i,:);zeros(cols-i,1,dispLevels)];
+    dataCostEdited1(cols-i+1:rows+cols-i,i,:) = dataCost(:,i,:);
+    dataCostEdited2(i:rows+i-1,i,:) = dataCost(:,i,:);
 end
 
 % Initialize temporary tables for diagonal directions
