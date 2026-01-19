@@ -1,5 +1,7 @@
-% Stereo Matching using Belief Propagation (Accelerated)
-% ------------------------------------------------------------
+% Stereo Matching using Belief Propagation (with Accelerated message update schedule)
+% Computes a disparity map from a rectified stereo pair using Belief Propagation
+
+% Parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 iterations = 60;
 lambda = 5; %weight of smoothness cost
@@ -13,23 +15,19 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Convert to double
-leftImg = double(leftImg);
-rightImg = double(rightImg);
-
 % Get the size
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost (data cost)
 rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
-	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
+    rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(leftImg-rightImgShifted);
+dataCost = abs(double(leftImg)-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
-smoothnessCost = lambda*min(abs(d-d'),trunc);
+smoothnessCost = lambda*min(abs(d-d.'),trunc);
 smoothnessCost3d_1 = zeros(1,dispLevels,dispLevels);
 smoothnessCost3d_1(1,:,:) = smoothnessCost;
 smoothnessCost3d_2 = zeros(dispLevels,1,dispLevels);
@@ -64,14 +62,14 @@ for it = 1:iterations
     % Vertical forward pass - Send messages down
     for y = 1:rows-1
         msg = dataCost(y,:,:)+msgFromUp(y,:,:)+msgFromRight(y,:,:)+msgFromLeft(y,:,:);
-        msg = min(msg+smoothnessCost3d_2,[],3)';
+        msg = min(msg+smoothnessCost3d_2,[],3).';
         msgFromUp(y+1,:,:) = msg-min(msg,[],2); %normalize message
     end
     
     % Vertical backward pass - Send messages up
     for y = rows:-1:2
         msg = dataCost(y,:,:)+msgFromDown(y,:,:)+msgFromRight(y,:,:)+msgFromLeft(y,:,:);
-        msg = min(msg+smoothnessCost3d_2,[],3)';
+        msg = min(msg+smoothnessCost3d_2,[],3).';
         msgFromDown(y-1,:,:) = msg-min(msg,[],2); %normalize message
     end
     
@@ -101,7 +99,7 @@ for it = 1:iterations
     imshow(dispImg)
     
     % Show energy and iteration
-	fprintf('iteration: %d/%d, energy: %d\n',it,iterations,energy(it))
+    fprintf('iteration: %d/%d, energy: %d\n',it,iterations,energy(it))
 end
 
 % Show convergence graph

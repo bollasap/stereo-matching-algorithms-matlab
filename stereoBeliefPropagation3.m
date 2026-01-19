@@ -1,5 +1,7 @@
-% Stereo Matching using Belief Propagation (Synchronous) - a different aproach
-% ------------------------------------------------------------
+% Stereo Matching using Belief Propagation (with Synchronous message update schedule) - a different aproach
+% Computes a disparity map from a rectified stereo pair using Belief Propagation
+
+% Parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 iterations = 60;
 lambda = 5; %weight of smoothness cost
@@ -13,19 +15,15 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Convert to double
-leftImg = double(leftImg);
-rightImg = double(rightImg);
-
 % Get the size
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost (data cost)
 rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
-	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
+    rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(leftImg-rightImgShifted);
+dataCost = abs(double(leftImg)-rightImgShifted);
 
 % Initialize messages
 msgFromUp = zeros(rows,cols,dispLevels);

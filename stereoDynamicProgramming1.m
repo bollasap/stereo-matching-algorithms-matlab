@@ -1,5 +1,7 @@
-% Stereo Matching using Dynamic Programming (Left-Right Axes)
-% ------------------------------------------------------------
+% Stereo Matching using Dynamic Programming (with Left-Right Axes DSI)
+% Computes a disparity map from a rectified stereo pair using Dynamic Programming
+
+% Parameters
 dispLevels = 16;% disparity range: 0 to dispLevels-1
 Pocc = 5; %occlusion penalty
 Pdisc = 1; %vertical discontinuity penalty
@@ -12,12 +14,12 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
+% Get the size
+[rows,cols] = size(leftImg);
+
 % Convert to double
 leftImg = double(leftImg);
 rightImg = double(rightImg);
-
-% Get the size
-[rows,cols] = size(leftImg);
 
 D = Inf(cols+1,cols+1); %minimum costs
 T = zeros(cols+1,cols+1); %transitions
@@ -29,13 +31,13 @@ for y = 1:rows
     % Compute matching cost
     L = leftImg(y,:); %left scanline
     R = rightImg(y,:); %right scanline
-    C = abs(L-R'); %matching cost
+    C = abs(L-R.'); %matching cost
 
     % Keep previous transitions
     T0 = T;
 
     % Compute DP table (forward pass)
-    D(1,1:dispLevels) = (0:dispLevels-1) * Pocc;
+    D(1,1:dispLevels) = (0:dispLevels-1)*Pocc;
     T(1,2:dispLevels) = 2;
     for j = 2:cols+1
         for i = j:min(j+dispLevels-1,cols+1)

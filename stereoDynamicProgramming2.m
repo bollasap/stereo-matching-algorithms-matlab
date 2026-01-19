@@ -1,5 +1,7 @@
-% Stereo Matching using Dynamic Programming (Left-Disparity Axes)
-% ------------------------------------------------------------
+% Stereo Matching using Dynamic Programming (with Left-Disparity Axes DSI)
+% Computes a disparity map from a rectified stereo pair using Dynamic Programming
+
+% Parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 Pocc = 5; %occlusion penalty
 
@@ -11,24 +13,20 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Convert to double
-leftImg = double(leftImg);
-rightImg = double(rightImg);
-
 % Get the size
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost
 rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
-	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
+    rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(leftImg-rightImgShifted);
+dataCost = abs(double(leftImg)-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
-smoothnessCost = Pocc*abs(d-d');
-%smoothnessCost = Pocc*min(abs(d-d'),2); %alternative smoothness cost
+smoothnessCost = Pocc*abs(d-d.');
+%smoothnessCost = Pocc*min(abs(d-d.'),2); %alternative smoothness cost
 smoothnessCost3d = zeros(1,dispLevels,dispLevels);
 smoothnessCost3d(1,:,:) = smoothnessCost;
 
@@ -48,7 +46,7 @@ end
 d = ones(rows,1);
 for x = cols:-1:1
     dispMap(:,x) = d-1;
-    linInd = sub2ind(size(T),(1:rows)',x*ones(rows,1),d);
+    linInd = sub2ind(size(T),(1:rows).',x*ones(rows,1),d);
     d = T(linInd);
 end
 

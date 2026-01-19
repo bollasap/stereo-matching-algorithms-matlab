@@ -1,5 +1,7 @@
-% Block Matching
-% ------------------------------------------------------------
+% Stereo Matching using Block Matching
+% Computes a disparity map from a rectified stereo pair using Block Matching
+
+% Parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 windowSize = 5;
 
@@ -11,19 +13,15 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Convert to double
-leftImg = double(leftImg);
-rightImg = double(rightImg);
-
 % Get the size
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost
 rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
-	rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
+    rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(leftImg-rightImgShifted);
+dataCost = abs(double(leftImg)-rightImgShifted);
 
 % Aggregate the matching cost
 dataCost = imboxfilt3(dataCost,[windowSize windowSize 1]);

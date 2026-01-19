@@ -1,5 +1,7 @@
-% Semi-Global Block Matching
-% ------------------------------------------------------------
+% Stereo Matching using Semi-Global Block Matching (SGBM)
+% Computes a disparity map from a rectified stereo pair using Semi-Global Block Matching
+
+% Parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 windowSize = 3;
 p1 = 5; %occlusion penalty 1
@@ -13,10 +15,6 @@ rightImg = rgb2gray(imread('right.png'));
 leftImg = imgaussfilt(leftImg,0.6,'FilterSize',5);
 rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 
-% Convert to double
-leftImg = double(leftImg);
-rightImg = double(rightImg);
-
 % Get the size
 [rows,cols] = size(leftImg);
 
@@ -25,14 +23,14 @@ rightImgShifted = zeros(rows,cols,dispLevels);
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(leftImg-rightImgShifted);
+dataCost = abs(double(leftImg)-rightImgShifted);
 
 % Aggregate the matching cost
 dataCost = imboxfilt3(dataCost,[windowSize windowSize 1]);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
-diff = abs(d-d');
+diff = abs(d-d.');
 smoothnessCost = (diff==1)*p1+(diff>=2)*p2;
 smoothnessCost3d = zeros(1,dispLevels,dispLevels);
 smoothnessCost3d(1,:,:) = smoothnessCost;
