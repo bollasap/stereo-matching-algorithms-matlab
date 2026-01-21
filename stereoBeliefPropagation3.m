@@ -31,10 +31,15 @@ msgFromDown = zeros(rows,cols,dispLevels,'int32');
 msgFromRight = zeros(rows,cols,dispLevels,'int32');
 msgFromLeft = zeros(rows,cols,dispLevels,'int32');
 
-msgToUp = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
-msgToDown = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
-msgToRight = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
-msgToLeft = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
+msgToUp1 = intmax*ones(rows,cols,dispLevels+2,'int32');
+msgToDown1 = intmax*ones(rows,cols,dispLevels+2,'int32');
+msgToRight1 = intmax*ones(rows,cols,dispLevels+2,'int32');
+msgToLeft1 = intmax*ones(rows,cols,dispLevels+2,'int32');
+
+msgToUp2 = zeros(rows,cols,dispLevels,'int32');
+msgToDown2 = zeros(rows,cols,dispLevels,'int32');
+msgToRight2 = zeros(rows,cols,dispLevels,'int32');
+msgToLeft2 = zeros(rows,cols,dispLevels,'int32');
 
 costs = zeros(rows,cols,3,'int32');
 energy = zeros(iterations,1);
@@ -43,50 +48,50 @@ figure
 % Start iterations
 for it = 1:iterations
 
-    % Compute messages (step 1)
-    msgToUp(:,:,2:end-1) = dataCost + msgFromDown + msgFromRight + msgFromLeft;
-    msgToDown(:,:,2:end-1) = dataCost + msgFromUp + msgFromRight + msgFromLeft;
-    msgToRight(:,:,2:end-1) = dataCost + msgFromUp + msgFromDown + msgFromLeft;
-    msgToLeft(:,:,2:end-1) = dataCost + msgFromUp + msgFromDown + msgFromRight;
+    % Compute messages - Step 1
+    msgToUp1(:,:,2:end-1) = dataCost + msgFromDown + msgFromRight + msgFromLeft;
+    msgToDown1(:,:,2:end-1) = dataCost + msgFromUp + msgFromRight + msgFromLeft;
+    msgToRight1(:,:,2:end-1) = dataCost + msgFromUp + msgFromDown + msgFromLeft;
+    msgToLeft1(:,:,2:end-1) = dataCost + msgFromUp + msgFromDown + msgFromRight;
 
     % Find minimum costs
-    minMsgToUp = min(msgToUp,[],3);
-    minMsgToDown = min(msgToDown,[],3);
-    minMsgToRight = min(msgToRight,[],3);
-    minMsgToLeft = min(msgToLeft,[],3);
+    minMsgToUp = min(msgToUp1,[],3);
+    minMsgToDown = min(msgToDown1,[],3);
+    minMsgToRight = min(msgToRight1,[],3);
+    minMsgToLeft = min(msgToLeft1,[],3);
 
-    % Compute messages (step 2)
+    % Compute messages - Step 2
     for i = 1:dispLevels
         % Messages to up
-        costs(:,:,1) = msgToUp(:,:,i+1);
-        costs(:,:,2) = min(msgToUp(:,:,i),msgToUp(:,:,i+2))+lambda;
+        costs(:,:,1) = msgToUp1(:,:,i+1);
+        costs(:,:,2) = min(msgToUp1(:,:,i),msgToUp1(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToUp+2*lambda;
-        msgFromDown(:,:,i) = min(costs,[],3)-minMsgToUp;
+        msgToUp2(:,:,i) = min(costs,[],3)-minMsgToUp;
         
         % Messages to down
-        costs(:,:,1) = msgToDown(:,:,i+1);
-        costs(:,:,2) = min(msgToDown(:,:,i),msgToDown(:,:,i+2))+lambda;
+        costs(:,:,1) = msgToDown1(:,:,i+1);
+        costs(:,:,2) = min(msgToDown1(:,:,i),msgToDown1(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToDown+2*lambda;
-        msgFromUp(:,:,i) = min(costs,[],3)-minMsgToDown;
+        msgToDown2(:,:,i) = min(costs,[],3)-minMsgToDown;
         
         % Messages to right
-        costs(:,:,1) = msgToRight(:,:,i+1);
-        costs(:,:,2) = min(msgToRight(:,:,i),msgToRight(:,:,i+2))+lambda;
+        costs(:,:,1) = msgToRight1(:,:,i+1);
+        costs(:,:,2) = min(msgToRight1(:,:,i),msgToRight1(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToRight+2*lambda;
-        msgFromLeft(:,:,i) = min(costs,[],3)-minMsgToRight;
+        msgToRight2(:,:,i) = min(costs,[],3)-minMsgToRight;
         
         % Messages to left
-        costs(:,:,1) = msgToLeft(:,:,i+1);
-        costs(:,:,2) = min(msgToLeft(:,:,i),msgToLeft(:,:,i+2))+lambda;
+        costs(:,:,1) = msgToLeft1(:,:,i+1);
+        costs(:,:,2) = min(msgToLeft1(:,:,i),msgToLeft1(:,:,i+2))+lambda;
         costs(:,:,3) = minMsgToLeft+2*lambda;
-        msgFromRight(:,:,i) = min(costs,[],3)-minMsgToLeft;
+        msgToLeft2(:,:,i) = min(costs,[],3)-minMsgToLeft;
     end
 
-    % Fix messages
-    msgFromDown = [msgFromDown(2:end,:,:);zeros(1,cols,dispLevels)]; %shift up
-    msgFromUp = [zeros(1,cols,dispLevels);msgFromUp(1:end-1,:,:)]; %shift down
-    msgFromLeft = [zeros(rows,1,dispLevels),msgFromLeft(:,1:end-1,:)]; %shift right
-    msgFromRight = [msgFromRight(:,2:end,:),zeros(rows,1,dispLevels)]; %shift left
+    % Send messages
+    msgFromDown(1:end-1,:,:) = msgToUp2(2:end,:,:); %shift up
+    msgFromUp(2:end,:,:) = msgToDown2(1:end-1,:,:); %shift down
+    msgFromLeft(:,2:end,:) = msgToRight2(:,1:end-1,:); %shift right
+    msgFromRight(:,1:end-1,:) = msgToLeft2(:,2:end,:); %shift left
 
     % Compute belief
     %belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft; %standard belief computation

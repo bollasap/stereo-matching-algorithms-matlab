@@ -17,11 +17,11 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 % Get the size
 [rows,cols] = size(leftImg);
 
-% Convert to double
+% Convert to int32
 leftImg = int32(leftImg);
 rightImg = int32(rightImg);
 
-D = intmax('int32')*ones(cols+1,cols+1,'int32'); %minimum costs
+D = intmax*ones(cols+1,cols+1,'int32'); %minimum costs
 T = zeros(cols+1,cols+1,'int32'); %transitions
 dispMap = zeros(rows,cols);
 
