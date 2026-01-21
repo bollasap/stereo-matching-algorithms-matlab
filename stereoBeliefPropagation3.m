@@ -19,24 +19,24 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost (data cost)
-rightImgShifted = zeros(rows,cols,dispLevels);
+rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(double(leftImg)-rightImgShifted);
+dataCost = abs(int32(leftImg)-rightImgShifted);
 
 % Initialize messages
-msgFromUp = zeros(rows,cols,dispLevels);
-msgFromDown = zeros(rows,cols,dispLevels);
-msgFromRight = zeros(rows,cols,dispLevels);
-msgFromLeft = zeros(rows,cols,dispLevels);
+msgFromUp = zeros(rows,cols,dispLevels,'int32');
+msgFromDown = zeros(rows,cols,dispLevels,'int32');
+msgFromRight = zeros(rows,cols,dispLevels,'int32');
+msgFromLeft = zeros(rows,cols,dispLevels,'int32');
 
-msgToUp = Inf(rows,cols,dispLevels+2);
-msgToDown = Inf(rows,cols,dispLevels+2);
-msgToRight = Inf(rows,cols,dispLevels+2);
-msgToLeft = Inf(rows,cols,dispLevels+2);
+msgToUp = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
+msgToDown = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
+msgToRight = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
+msgToLeft = intmax('int32')*ones(rows,cols,dispLevels+2,'int32');
 
-costs = zeros(rows,cols,3);
+costs = zeros(rows,cols,3,'int32');
 energy = zeros(iterations,1);
 figure
 
@@ -89,8 +89,8 @@ for it = 1:iterations
     msgFromRight = [msgFromRight(:,2:end,:),zeros(rows,1,dispLevels)]; %shift left
 
     % Compute belief
-    %belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Standard belief computation
-    belief = msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Without dataCost (larger energy but better results)
+    %belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft; %standard belief computation
+    belief = msgFromUp + msgFromDown + msgFromRight + msgFromLeft; %without dataCost (larger energy but better results)
     
     % Compute the disparity map
     [~,ind] = min(belief,[],3);

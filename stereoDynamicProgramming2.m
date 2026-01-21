@@ -17,21 +17,21 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost
-rightImgShifted = zeros(rows,cols,dispLevels);
+rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(double(leftImg)-rightImgShifted);
+dataCost = abs(int32(leftImg)-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
 smoothnessCost = Pocc*abs(d-d.');
 %smoothnessCost = Pocc*min(abs(d-d.'),2); %alternative smoothness cost
-smoothnessCost3d = zeros(1,dispLevels,dispLevels);
+smoothnessCost3d = zeros(1,dispLevels,dispLevels,'int32');
 smoothnessCost3d(1,:,:) = smoothnessCost;
 
-D = zeros(rows,cols,dispLevels); %minimum costs
-T = zeros(rows,cols,dispLevels); %transitions
+D = zeros(rows,cols,dispLevels,'int32'); %minimum costs
+T = zeros(rows,cols,dispLevels,'int32'); %transitions
 dispMap = zeros(rows,cols);
 
 % Compute DP table (forward pass)

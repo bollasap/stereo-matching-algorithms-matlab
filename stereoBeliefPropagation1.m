@@ -19,25 +19,25 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost (data cost)
-rightImgShifted = zeros(rows,cols,dispLevels);
+rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(double(leftImg)-rightImgShifted);
+dataCost = abs(int32(leftImg)-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
 smoothnessCost = lambda*min(abs(d-d.'),trunc);
-smoothnessCost3d_1 = zeros(1,dispLevels,dispLevels);
+smoothnessCost3d_1 = zeros(1,dispLevels,dispLevels,'int32');
 smoothnessCost3d_1(1,:,:) = smoothnessCost;
-smoothnessCost3d_2 = zeros(dispLevels,1,dispLevels);
+smoothnessCost3d_2 = zeros(dispLevels,1,dispLevels,'int32');
 smoothnessCost3d_2(:,1,:) = smoothnessCost;
 
 % Initialize messages
-msgFromUp = zeros(rows,cols,dispLevels);
-msgFromDown = zeros(rows,cols,dispLevels);
-msgFromRight = zeros(rows,cols,dispLevels);
-msgFromLeft = zeros(rows,cols,dispLevels);
+msgFromUp = zeros(rows,cols,dispLevels,'int32');
+msgFromDown = zeros(rows,cols,dispLevels,'int32');
+msgFromRight = zeros(rows,cols,dispLevels,'int32');
+msgFromLeft = zeros(rows,cols,dispLevels,'int32');
 
 figure
 energy = zeros(iterations,1);
@@ -74,8 +74,8 @@ for it = 1:iterations
     end
     
     % Compute belief
-    %belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Standard belief computation
-    belief = msgFromUp + msgFromDown + msgFromRight + msgFromLeft; % Without dataCost (larger energy but better results)
+    %belief = dataCost + msgFromUp + msgFromDown + msgFromRight + msgFromLeft; %standard belief computation
+    belief = msgFromUp + msgFromDown + msgFromRight + msgFromLeft; %without dataCost (larger energy but better results)
     
     % Compute the disparity map
     [~,ind] = min(belief,[],3);
