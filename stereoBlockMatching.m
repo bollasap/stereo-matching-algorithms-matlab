@@ -17,14 +17,14 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost
-rightImgShifted = zeros(rows,cols,dispLevels);
+rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(double(leftImg)-rightImgShifted);
+dataCost = abs(int32(leftImg)-rightImgShifted);
 
 % Aggregate the matching cost
-dataCost = imboxfilt3(dataCost,[windowSize windowSize 1]);
+dataCost = int32(convn(dataCost,ones(windowSize,windowSize,1),'same'));
 
 % Compute the disparity map
 [~,ind] = min(dataCost,[],3);

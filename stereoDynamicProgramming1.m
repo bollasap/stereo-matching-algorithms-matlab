@@ -18,11 +18,11 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 [rows,cols] = size(leftImg);
 
 % Convert to double
-leftImg = double(leftImg);
-rightImg = double(rightImg);
+leftImg = int32(leftImg);
+rightImg = int32(rightImg);
 
-D = Inf(cols+1,cols+1); %minimum costs
-T = zeros(cols+1,cols+1); %transitions
+D = intmax('int32')*ones(cols+1,cols+1,'int32'); %minimum costs
+T = zeros(cols+1,cols+1,'int32'); %transitions
 dispMap = zeros(rows,cols);
 
 % For each scanline

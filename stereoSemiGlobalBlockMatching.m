@@ -19,31 +19,33 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 [rows,cols] = size(leftImg);
 
 % Compute pixel-based matching cost
-rightImgShifted = zeros(rows,cols,dispLevels);
+rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(double(leftImg)-rightImgShifted);
+dataCost = abs(int32(leftImg)-rightImgShifted);
 
 % Aggregate the matching cost
-dataCost = imboxfilt3(dataCost,[windowSize windowSize 1]);
+dataCost = int32(convn(dataCost,ones(windowSize,windowSize,1),'same'));
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
 diff = abs(d-d.');
+p1 = p1*windowSize^2; %normalize p1
+p2 = p2*windowSize^2; %normalize p2
 smoothnessCost = (diff==1)*p1+(diff>=2)*p2;
-smoothnessCost3d = zeros(1,dispLevels,dispLevels);
+smoothnessCost3d = zeros(1,dispLevels,dispLevels,'int32');
 smoothnessCost3d(1,:,:) = smoothnessCost;
 
 % Initialize path tables for the 8 directions
-L1 = zeros(rows,cols,dispLevels);
-L2 = zeros(rows,cols,dispLevels);
-L3 = zeros(cols,rows,dispLevels);
-L4 = zeros(cols,rows,dispLevels);
-L5 = zeros(rows,cols,dispLevels);
-L6 = zeros(rows,cols,dispLevels);
-L7 = zeros(rows,cols,dispLevels);
-L8 = zeros(rows,cols,dispLevels);
+L1 = zeros(rows,cols,dispLevels,'int32');
+L2 = zeros(rows,cols,dispLevels,'int32');
+L3 = zeros(cols,rows,dispLevels,'int32');
+L4 = zeros(cols,rows,dispLevels,'int32');
+L5 = zeros(rows,cols,dispLevels,'int32');
+L6 = zeros(rows,cols,dispLevels,'int32');
+L7 = zeros(rows,cols,dispLevels,'int32');
+L8 = zeros(rows,cols,dispLevels,'int32');
 
 % Compute paths for left to right direction
 for x = 2:cols
@@ -79,18 +81,18 @@ end
 L4 = permute(L4,[2 1 3]);
 
 % Edit dataCost for diagonal directions
-dataCostEdited1 = zeros(rows+cols-1,cols,dispLevels);
-dataCostEdited2 = zeros(rows+cols-1,cols,dispLevels);
+dataCostEdited1 = zeros(rows+cols-1,cols,dispLevels,'int32');
+dataCostEdited2 = zeros(rows+cols-1,cols,dispLevels,'int32');
 for i = 1:cols
     dataCostEdited1(cols-i+1:rows+cols-i,i,:) = dataCost(:,i,:);
     dataCostEdited2(i:rows+i-1,i,:) = dataCost(:,i,:);
 end
 
 % Initialize temporary tables for diagonal directions
-L5a = zeros(rows+cols-1,cols,dispLevels);
-L6a = zeros(rows+cols-1,cols,dispLevels);
-L7a = zeros(rows+cols-1,cols,dispLevels);
-L8a = zeros(rows+cols-1,cols,dispLevels);
+L5a = zeros(rows+cols-1,cols,dispLevels,'int32');
+L6a = zeros(rows+cols-1,cols,dispLevels,'int32');
+L7a = zeros(rows+cols-1,cols,dispLevels,'int32');
+L8a = zeros(rows+cols-1,cols,dispLevels,'int32');
 
 % Compute paths for left/up to right/down direction
 for x = 2:cols
