@@ -1,11 +1,18 @@
 % Stereo Matching using Belief Propagation (with Synchronous message update schedule)
 % Computes a disparity map from a rectified stereo pair using Belief Propagation
 
-% Parameters
+% Set parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 iterations = 60;
 lambda = 5; %weight of smoothness cost
 trunc = 2; %truncation of smoothness cost
+
+% Define data cost computation
+dataCostComputation = @(differences) abs(differences); %absolute differences
+%dataCostComputation = @(differences) differences.^2; %square differences
+
+% Define smoothness cost computation
+smoothnessCostComputation = @(differences) lambda*min(abs(differences),trunc);
 
 % Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
@@ -23,11 +30,11 @@ rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(int32(leftImg)-rightImgShifted);
+dataCost = dataCostComputation(int32(leftImg)-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
-smoothnessCost = lambda*min(abs(d-d.'),trunc);
+smoothnessCost = smoothnessCostComputation(d-d.');
 smoothnessCost4d = zeros(1,1,dispLevels,dispLevels,'int32');
 smoothnessCost4d(1,1,:,:) = smoothnessCost;
 
@@ -81,11 +88,9 @@ for it = 1:iterations
     [row,col] = ndgrid(1:size(ind,1),1:size(ind,2));
     linInd = sub2ind(size(dataCost),row,col,ind);
     dataEnergy = sum(sum(dataCost(linInd)));
-    row = [reshape(ind(:,1:end-1),[],1);reshape(ind(1:end-1,:),[],1)];
-    col = [reshape(ind(:,2:end),[],1);reshape(ind(2:end,:),[],1)];
-    linInd = sub2ind(size(smoothnessCost),row,col);
-    smoothnessEnergy = sum(smoothnessCost(linInd));
-    energy(it) = dataEnergy+smoothnessEnergy;
+    smoothnessEnergyHorizontal = sum(sum(smoothnessCostComputation(diff(dispMap,1,2))));
+    smoothnessEnergyVertical = sum(sum(smoothnessCostComputation(diff(dispMap,1,1))));
+    energy(it) = dataEnergy+smoothnessEnergyHorizontal+smoothnessEnergyVertical;
     
     % Normalize the disparity map for display
     scaleFactor = 256/dispLevels;

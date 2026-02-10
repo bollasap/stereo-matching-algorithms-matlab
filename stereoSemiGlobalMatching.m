@@ -1,10 +1,17 @@
 % Stereo Matching using Semi-Global Matching (SGM)
 % Computes a disparity map from a rectified stereo pair using Semi-Global Matching
 
-% Parameters
+% Set parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 p1 = 5; %occlusion penalty 1
 p2 = 10; %occlusion penalty 2
+
+% Define data cost computation
+dataCostComputation = @(differences) abs(differences); %absolute differences
+%dataCostComputation = @(differences) differences.^2; %square differences
+
+% Define smoothness cost computation
+smoothnessCostComputation = @(differences) (abs(differences)==1)*p1+(abs(differences)>=2)*p2;
 
 % Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
@@ -17,17 +24,16 @@ rightImg = imgaussfilt(rightImg,0.6,'FilterSize',5);
 % Get the size
 [rows,cols] = size(leftImg);
 
-% Compute pixel-based matching cost
+% Compute pixel-based matching cost (data cost)
 rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(int32(leftImg)-rightImgShifted);
+dataCost = dataCostComputation(int32(leftImg)-rightImgShifted);
 
 % Compute smoothness cost
 d = 0:dispLevels-1;
-diff = abs(d-d.');
-smoothnessCost = (diff==1)*p1+(diff>=2)*p2;
+smoothnessCost = smoothnessCostComputation(d-d.');
 smoothnessCost3d = zeros(1,dispLevels,dispLevels,'int32');
 smoothnessCost3d(1,:,:) = smoothnessCost;
 

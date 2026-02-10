@@ -1,10 +1,16 @@
 % Stereo Matching using Dynamic Programming (with Left-Right Axes DSI)
 % Computes a disparity map from a rectified stereo pair using Dynamic Programming
 
-% Parameters
+% Set parameters
 dispLevels = 16;% disparity range: 0 to dispLevels-1
 Pocc = 5; %occlusion penalty
 Pdisc = 1; %vertical discontinuity penalty
+
+% Define data cost computation
+dataCostComputation = @(differences) abs(differences); %absolute differences
+%dataCostComputation = @(differences) differences.^2; %square differences
+
+% Predefined smoothness cost computation: Pocc*abs(differences)
 
 % Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
@@ -31,7 +37,7 @@ for y = 1:rows
     % Compute matching cost
     L = leftImg(y,:); %left scanline
     R = rightImg(y,:); %right scanline
-    C = abs(L-R.'); %matching cost
+    C = dataCostComputation(L-R.'); %matching cost
 
     % Keep previous transitions
     T0 = T;

@@ -1,11 +1,16 @@
 % Stereo Matching using Belief Propagation (with Synchronous message update schedule) - a different aproach
 % Computes a disparity map from a rectified stereo pair using Belief Propagation
 
-% Parameters
+% Set parameters
 dispLevels = 16; %disparity range: 0 to dispLevels-1
 iterations = 60;
 lambda = 5; %weight of smoothness cost
-%smoothness cost computation: min(abs(d1-d2),2)*lambda
+
+% Define data cost computation
+dataCostComputation = @(differences) abs(differences); %absolute differences
+%dataCostComputation = @(differences) differences.^2; %square differences
+
+% Predefined smoothness cost computation: lambda*min(abs(differences),2)
 
 % Load left and right images in grayscale
 leftImg = rgb2gray(imread('left.png'));
@@ -23,7 +28,7 @@ rightImgShifted = zeros(rows,cols,dispLevels,'int32');
 for d = 0:dispLevels-1
     rightImgShifted(:,d+1:end,d+1) = rightImg(:,1:end-d);
 end
-dataCost = abs(int32(leftImg)-rightImgShifted);
+dataCost = dataCostComputation(int32(leftImg)-rightImgShifted);
 
 % Initialize messages
 msgFromUp = zeros(rows,cols,dispLevels,'int32');
@@ -105,8 +110,8 @@ for it = 1:iterations
     [row,col] = ndgrid(1:size(ind,1),1:size(ind,2));
     linInd = sub2ind(size(dataCost),row,col,ind);
     dataEnergy = sum(sum(dataCost(linInd)));
-    smoothnessEnergyHorizontal = sum(sum(min(abs(ind(:,1:end-1)-ind(:,2:end)),2)*lambda));
-    smoothnessEnergyVertical = sum(sum(min(abs(ind(1:end-1,:)-ind(2:end,:)),2)*lambda));
+    smoothnessEnergyHorizontal = sum(sum(lambda*min(abs(diff(dispMap,1,2)),2)));
+    smoothnessEnergyVertical = sum(sum(lambda*min(abs(diff(dispMap,1,1)),2)));
     energy(it) = dataEnergy+smoothnessEnergyHorizontal+smoothnessEnergyVertical;
 
     % Normalize the disparity map for display
