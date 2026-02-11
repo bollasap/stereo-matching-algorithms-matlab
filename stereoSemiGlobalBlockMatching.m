@@ -135,7 +135,8 @@ for i = 1:cols
 end
 
 % Compute total cost
-S = L1 + L2 + L3 + L4 + L5 + L6 + L7 + L8;
+%S = dataCost*8 + L1 + L2 + L3 + L4 + L5 + L6 + L7 + L8; %standard total cost computation
+S = L1 + L2 + L3 + L4 + L5 + L6 + L7 + L8; %without dataCost*8 (better results)
 
 % Compute the disparity map
 [~,ind] = min(S,[],3);
