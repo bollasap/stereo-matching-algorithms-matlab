@@ -1,5 +1,11 @@
 # Stereo Matching Algorithms in MATLAB
 
+> [!IMPORTANT]
+> **Repository Moved**  
+> This repository has been moved to a new location and is no longer maintained here.  
+> Please visit the new repository: https://github.com/aposb/stereo-matching-algorithms  
+> This repository is archived and kept for reference only.
+
 Optimized (very fast) stereo matching algorithms in MATLAB. It includes implementations of Block Matching, Dynamic Programming, Semi-Global Matching, Semi-Global Block Matching and Belief Propagation.
 
 There is also the Python port **[Stereo Matching Algorithms in Python](https://github.com/bollasap/stereo-matching-algorithms-python)**.
