@@ -1,6 +1,5 @@
 # Stereo Matching Algorithms in MATLAB
 
-> [!IMPORTANT]
 > **Repository Moved**  
 > This repository has been moved to a new location and is no longer maintained here.  
 > Please visit the new repository: https://github.com/aposb/stereo-matching-algorithms  
